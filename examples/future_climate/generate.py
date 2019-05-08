@@ -1,5 +1,5 @@
 import sys, time, gc
-sys.path.insert(0, '/Users/owenevans/Desktop/hurricanes/hurricanes')
+sys.path.insert(0, '/Users/owenevans/Repos/github/hurricanes/hurricanes')
 
 from read_data import HurricaneDatabase
 from cyclone import Cyclone
@@ -74,7 +74,7 @@ f_out.write("pitchjitter = 1\n")
 
 # Animate and sonify tracks
 data_rcp = data
-#at.animate(data, data_rcp, m, writer, sample_rate, fade_inc, base_name)
+at.animate(data, data_rcp, m, writer, sample_rate, fade_inc, base_name)
 st.sonify(data, f_out, fps, sample_rate, 'max_wind', scale, shift)
 f_out.close()
 
