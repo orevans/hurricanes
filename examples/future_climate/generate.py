@@ -21,7 +21,7 @@ fig.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)
 FFMpegWriter = manimation.writers['ffmpeg']
 metadata = dict(title='Movie Test', artist='Matplotlib',
                 comment='Movie support!')
-writer = FFMpegWriter(fps=600, bitrate=100000000)#80000000)
+writer = FFMpegWriter(fps=20, bitrate=100000) #80000000)
 
 # Set up figure
 #m = Basemap(llcrnrlon=-110.,llcrnrlat=-15.,urcrnrlon=20.0,urcrnrlat=57.,
@@ -37,13 +37,15 @@ m.bluemarble()
 print("Done...")
 
 # Parameters
-sample_rate = 10.
-fps = 600.
+sample_rate = 5.
+fps = 20.
 fade_inc = 0.005
 base_name = sys.argv[1]
 
 # Path to data directory
-repo_dir = sp.Popen(['git', 'rev-parse', '--show-toplevel'], stdout=sp.PIPE).communicate()[0].rstrip().decode("utf-8")
+repo_dir = sp.Popen(['git', 'rev-parse', '--show-toplevel'],
+                    stdout=sp.PIPE).communicate()[0].rstrip().decode("utf-8")
+
 data = repo_dir + "/data/atl_models/" + base_name + ".txt"
 
 scale, shift = 0.04, 2.2
@@ -74,7 +76,7 @@ f_out.write("pitchjitter = 1\n")
 
 # Animate and sonify tracks
 data_rcp = data
-at.animate(data, data_rcp, m, writer, sample_rate, fade_inc, base_name)
+#at.animate(data, data_rcp, m, writer, sample_rate, fade_inc, base_name)
 st.sonify(data, f_out, fps, sample_rate, 'max_wind', scale, shift)
 f_out.close()
 
@@ -90,7 +92,9 @@ movie_snd_name = base_name + 'sound.mp4'
 
 # Stich together with ffmpeg
 #run_ffmpeg_cmd = 'ffmpeg -i ' + sound_name + ' -i ' + movie_name + ' -c copy ' + movie_snd_name
-run_ffmpeg_cmd = 'ffmpeg -i ' + movie_name + ' -i ' + sound_name + ' -c:v copy -c:a aac -strict experimental ' + movie_snd_name
+run_ffmpeg_cmd = 'ffmpeg -i ' + movie_name + ' -i ' \
+                 + sound_name + ' -c:v copy -c:a aac -strict experimental ' \
+                 + movie_snd_name
 
 make_movie = sp.Popen(run_ffmpeg_cmd, shell=True)
 make_movie.wait()

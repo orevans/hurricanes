@@ -157,8 +157,6 @@ class Cyclone():
         times = [start + i/(fps*sample_rate) for i in range(len(self.df.index))]
         dur_audio = times[-1] - times[0]
         data_scaled = self.df[field]*scale + shift
-        #if(len(times) < 2):
-        #    print("FUCKK", times, self.ID)
         return dur_audio, times, data_scaled
 
     def pitch_cmixline(self, data):
@@ -177,19 +175,29 @@ class Cyclone():
         audio_data = self.set_audio_data(start, fps, sample_rate, scale, shift, field)
         dur, times, pitches = audio_data
         start = times[0]
-        cmix_pitches = self.pitch_cmixline(pitches)
+        
+        cmix_pitches = self.pitch_cmixline([x for x in pitches])
+        cat4_high_pitches = self.pitch_cmixline([x*1.1 for x in pitches])
+        cat4_low_pitches = self.pitch_cmixline([x/2.5 for x in pitches])
+        cat5_high_pitches = self.pitch_cmixline([1.5*x for x in pitches])
+        cat5_low_pitches = self.pitch_cmixline([x/2.5 for x in pitches])
 
         # Write the base layer
-        score.write("GRANSYNTH(%s, %s, amp*6000, wave, granenv, hoptime,\
+        score.write("GRANSYNTH(%s, %s, amp*1000, wave, granenv, hoptime,\
         hopjitter, mindur, maxdur, minamp, 0.7*maxamp, %s,\
-        transpcoll, pitchjitter, 14, %s, %s)\n" % (start, dur, cmix_pitches, self.pan(), self.pan()))
+        transpcoll, pitchjitter, 14, %s, %s)\n" % (start, dur, cmix_pitches,
+                                                   self.pan(), self.pan()))
 
-        # Loop through to determine layers
-        for key in self.layer_thresholds:
-            starts, ends, l_notes = self.layer_score_data(times, key, field)
-            durs = np.asarray(ends) - np.asarray(starts)
 
-            # Add each layer to the cmix score
-            for k, t in enumerate(starts):
-                l_notes[k] = np.asarray(l_notes[k])*scale + shift
-                self.add_score_layer(score, t, durs[k], l_notes[k], key)
+        if float(self.df['max_wind'].max()) > 113.:
+            score.write("GRANSYNTH(%s, %s, amp*1000, wave, granenv, hoptime,\
+            hopjitter, mindur, maxdur, minamp, 0.7*maxamp, %s,\
+            transpcoll, pitchjitter, 14, %s, %s)\n" % (start, dur,
+                                                       cat4_high_pitches,
+                                                       self.pan(), self.pan()))
+
+            score.write("GRANSYNTH(%s, %s, amp*3500, wave, granenv, hoptime,\
+            hopjitter, mindur, maxdur, minamp, 0.7*maxamp, %s,\
+            transpcoll, pitchjitter, 14, %s, %s)\n" % (start, dur,
+                                                       cat4_low_pitches,
+                                                       self.pan(), self.pan()))
